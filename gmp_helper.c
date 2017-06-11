@@ -70,6 +70,7 @@ void __mpz_urandomm(mpz_t rop, const mpz_t n)
         gmp_randclear(rstate);
 }
 
+
 /**
  * mpz_rand_bitlen() - get random number at given binary length
  *
@@ -80,42 +81,33 @@ void __mpz_urandomm(mpz_t rop, const mpz_t n)
 int mpz_rand_bitlen(mpz_t rop, uint64_t len)
 {
         mpz_t res;
-        mpz_t rseed;
         mpz_t upper;    /* not used */
         mpz_t lower;
-        gmp_randstate_t rstate;
-
-        if (!rop)
-                return -EINVAL;
 
         if (len < 1)
                 return -EINVAL;
 
-        mpz_inits(res, rseed, upper, lower, NULL);
+        mpz_inits(res, upper, lower, NULL);
 
         mpz_set_ui(upper, 1);
         mpz_set_ui(lower, 1);
-        mpz_set_ui(rseed, urandom_read());
 
         mpz_mul_2exp(upper, upper, len);
         mpz_mul_2exp(lower, lower, len - 1);
 
-        gmp_randinit_mt(rstate);
-        gmp_randseed(rstate, rseed);
-
         while (1) {
                 /* return random number below (2^n) - 1*/
-                mpz_urandomb(res, rstate, len);
+                __mpz_urandomb(res, len);
 
                 if (mpz_cmp(res, lower) >= 0) {
                         break;
                 }
         }
 
+        /* rop must not null */
         mpz_set(rop, res);
 
-        mpz_clears(res, rseed, upper, lower, NULL);
-        gmp_randclear(rstate);
+        mpz_clears(res, upper, lower, NULL);
 
         return 0;
 }
