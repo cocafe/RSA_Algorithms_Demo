@@ -16,4 +16,22 @@ enum {
         NUM_PRIME,
 };
 
+struct rsa_key {
+        mpz_t n;
+        mpz_t p;
+        mpz_t q;
+        mpz_t e;
+        mpz_t d;
+};
+
+struct rsa_private {
+        mpz_t n;
+        mpz_t e;
+};
+
+struct rsa_public {
+        mpz_t n;
+        mpz_t d;
+};
+
 #endif //SIMPLERSADIGEST_RSA_DIGEST_H

@@ -8,6 +8,38 @@
 #include "rsa_digest.h"
 
 /**
+ * rsa_key_init() - init gmp elements in key
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_key_init(struct rsa_key *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        mpz_inits(key->n, key->p, key->q, key->e, key->d, NULL);
+
+        return 0;
+}
+
+/**
+ * rsa_key_clean() - free gmp elements in key
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_key_clean(struct rsa_key *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        mpz_clears(key->n, key->p, key->q, key->e, key->d, NULL);
+
+        return 0;
+}
+
+/**
  * primality_test() - Solovay-Strassen primality test
  *
  * @param   n: a value to test
