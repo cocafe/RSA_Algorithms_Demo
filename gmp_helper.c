@@ -140,7 +140,6 @@ int mpz_check_binlen(const mpz_t src, uint64_t len)
         return res;
 }
 
-
 /**
  * primality_test() - Solovay-Strassen primality test
  *
@@ -197,6 +196,50 @@ int primality_test(const mpz_t n, uint64_t k)
         }
 
         mpz_clears(t, a, x, NULL);
+
+        return 0;
+}
+
+int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
+{
+        if (!n || !p || !q || !len_n)
+                return -EINVAL;
+
+        if (len_n % 2)
+                return -EINVAL;
+
+        while (1) {
+                mpz_rand_bitlen(p, len_n / 2);
+                mpz_rand_bitlen(q, len_n / 2);
+
+                mpz_mul(n, p, q);
+                if (mpz_check_binlen(n, len_n))
+                        continue;
+
+                while (1) {
+                        mpz_rand_bitlen(p, len_n / 2);
+
+                        if (primality_test(p, PRIMALITY_TEST_ACCURACY) ==
+                            NUM_COMPOSITE)
+                                continue;
+
+                        break;
+                }
+
+                while (1) {
+                        mpz_rand_bitlen(q, len_n / 2);
+
+                        if (primality_test(q, PRIMALITY_TEST_ACCURACY) ==
+                            NUM_COMPOSITE)
+                                continue;
+
+                        break;
+                }
+
+                mpz_mul(n, p, q);
+                if (!mpz_check_binlen(n, len_n))
+                        break;
+        }
 
         return 0;
 }
