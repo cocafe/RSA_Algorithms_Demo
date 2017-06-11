@@ -154,6 +154,7 @@ int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
 
 /**
  * generate_e_d() - generate E and D factors
+ *
  * @param   e: e to write
  * @param   d: d to write
  * @param   p: p factor
@@ -183,7 +184,7 @@ int generate_e_d(mpz_t e, mpz_t d, const mpz_t p, const mpz_t q)
         /* XXX: duplicated */
         mpz_gcd(t, e, phi);
         if (mpz_cmp_ui(t, 1)) {
-                printf("gcd() (e, phi) failed!\n");
+                fprintf(stderr, "gcd() (e, phi) failed!\n");
                 return -EFAULT;
         }
 
@@ -193,7 +194,7 @@ int generate_e_d(mpz_t e, mpz_t d, const mpz_t p, const mpz_t q)
         mpz_mul(t, e, d);
         mpz_mod(t, t, phi);
         if (mpz_cmp_ui(t, 1)) {
-                printf("(e * d) %% phi = 1 failed!\n");
+                fprintf(stderr, "(e * d) %% phi = 1 failed!\n");
         }
 
         mpz_clears(phi, p1, q1, t, NULL);
