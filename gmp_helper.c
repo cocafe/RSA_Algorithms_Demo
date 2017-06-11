@@ -29,6 +29,48 @@ uint64_t urandom_read()
 }
 
 /**
+ * __mpz_uranodmb() - wrap of mpz_urandomb()
+ *
+ * get rid of init gmp_randstate_t
+ * randomly in the range 0 to (2^n)-1, inclusive
+ *
+ * @param   rop: randomly result to store
+ * @param   n: binary length
+ */
+void __mpz_urandomb(mpz_t rop, mp_bitcnt_t n)
+{
+        gmp_randstate_t rstate;
+
+        gmp_randinit_mt(rstate);
+        gmp_randseed_ui(rstate, urandom_read());
+
+        mpz_urandomb(rop, rstate, n);
+
+        gmp_randclear(rstate);
+}
+
+/**
+ * __mpz_uranodmm() - wrap of mpz_urandomm()
+ *
+ * get rid of init gmp_randstate_t
+ * randomly in the range 0 to (n - 1), inclusive
+ *
+ * @param   rop: randomly result to store
+ * @param   n: max number
+ */
+void __mpz_urandomm(mpz_t rop, const mpz_t n)
+{
+        gmp_randstate_t rstate;
+
+        gmp_randinit_mt(rstate);
+        gmp_randseed_ui(rstate, urandom_read());
+
+        mpz_urandomm(rop, rstate, n);
+
+        gmp_randclear(rstate);
+}
+
+/**
  * mpz_rand_bitlen() - get random number at given binary length
  *
  * @param   rop: result to store
