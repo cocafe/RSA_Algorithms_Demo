@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <gmp.h>
+#include <string.h>
 
 #include "gmp_helper.h"
 #include "rsa_digest.h"
@@ -460,4 +461,114 @@ int generate_private_key(struct rsa_key *key, struct rsa_private *pkey)
 void rsa_docrypt(mpz_t out, const mpz_t in, const mpz_t e, const mpz_t n)
 {
         mpz_powm(out, in, e, n);
+}
+
+/**
+ * rsa_encrypt_file() - encrypt file
+ *
+ * @param   file_crypt: encrypted file path
+ * @param   file_plain: file to encrypt
+ * @param   e: E or D factor in key
+ * @param   n: N factor in key
+ * @param   key_len: length of key
+ * @return  0 on success
+ */
+int rsa_encrypt_file(const char *file_encrypt,
+                     const char *file_plain,
+                     const mpz_t e,
+                     const mpz_t n,
+                     uint64_t key_len)
+{
+        FILE *fcrypt;
+        FILE *fplain;
+        mpz_t dcrypt;
+        mpz_t dplain;
+        int32_t res;
+        uint8_t ch;
+
+        if (!file_encrypt || !file_plain || !e || !n)
+                return -EINVAL;
+
+        fplain = fopen(file_plain, "r");
+        if (!fplain) {
+                fprintf(stderr, "failed to open %s to read\n", file_plain);
+                return -EACCES;
+        }
+
+        fcrypt = fopen(file_encrypt, "w");
+        if (!fcrypt) {
+                fprintf(stderr, "failed to open %s to write\n", file_encrypt);
+                return -EACCES;
+        }
+
+        mpz_inits(dcrypt, dplain, NULL);
+
+        while (!feof(fplain)) {
+                res = fgetc(fplain);
+                if (res == EOF)
+                        break;
+
+                ch = (uint8_t)res;
+
+                mpz_set_ui(dplain, ch);
+
+                rsa_docrypt(dcrypt, dplain, e, n);
+                gmp_fprintf(fcrypt, "%Zx\n", dcrypt);
+        }
+
+        fflush(fcrypt);
+        fclose(fplain);
+        fclose(fcrypt);
+
+        mpz_clears(dcrypt, dplain, NULL);
+
+        return 0;
+}
+
+int rsa_decrypt_file(const char *file_decrypt,
+                     const char *file_encrypt,
+                     const mpz_t e,
+                     const mpz_t n,
+                     uint64_t key_len)
+{
+        FILE *fencry;
+        FILE *fdecry;
+        mpz_t dencry;
+        mpz_t ddecry;
+        uint8_t ch;
+
+        if (!file_decrypt || !file_encrypt || !e || !n)
+                return -EINVAL;
+
+        fencry = fopen(file_encrypt, "r");
+        if (!fencry) {
+                fprintf(stderr, "failed to open %s to read\n", file_encrypt);
+                return -EACCES;
+        }
+
+        fdecry = fopen(file_decrypt, "w");
+        if (!fdecry) {
+                fprintf(stderr, "failed to open %s to write\n", file_decrypt);
+                return -EACCES;
+        }
+
+        mpz_inits(dencry, ddecry, NULL);
+
+        while (!feof(fencry)) {
+                gmp_fscanf(fencry, "%Zx", dencry);
+                if (feof(fencry))
+                        break;
+
+                rsa_docrypt(ddecry, dencry, e, n);
+                ch = (uint8_t)mpz_get_ui(ddecry);
+                fputc(ch, fdecry);
+        }
+
+        fflush(fdecry);
+        fclose(fencry);
+        fclose(fdecry);
+
+        mpz_clears(dencry, ddecry, NULL);
+
+        return 0;
 }

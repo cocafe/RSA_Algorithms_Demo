@@ -55,4 +55,16 @@ int generate_key(struct rsa_key *key, uint64_t len_key);
 int generate_public_key(struct rsa_key *key, struct rsa_public *pkey);
 int generate_private_key(struct rsa_key *key, struct rsa_private *pkey);
 
+int rsa_encrypt_file(const char *file_encrypt,
+                     const char *file_plain,
+                     const mpz_t e,
+                     const mpz_t n,
+                     uint64_t key_len);
+
+int rsa_decrypt_file(const char *file_decrypt,
+                     const char *file_encrypt,
+                     const mpz_t e,
+                     const mpz_t n,
+                     uint64_t key_len);
+
 #endif //SIMPLERSADIGEST_RSA_DIGEST_H
