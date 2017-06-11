@@ -67,6 +67,15 @@ int primality_test(const mpz_t n, uint64_t k)
         return 0;
 }
 
+/**
+ * generate_n_p_q() - generate N P Q factors in key
+ *
+ * @param   n: n to write
+ * @param   p: p to write
+ * @param   q: q to write
+ * @param   len_n: the length of n, aka the length of RSA key
+ * @return  0 on success
+ */
 int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
 {
         if (!n || !p || !q || !len_n)
@@ -111,6 +120,14 @@ int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
         return 0;
 }
 
+/**
+ * generate_e_d() - generate E and D factors
+ * @param   e: e to write
+ * @param   d: d to write
+ * @param   p: p factor
+ * @param   q: q factor
+ * @return  0 on success
+ */
 int generate_e_d(mpz_t e, mpz_t d, const mpz_t p, const mpz_t q)
 {
         mpz_t phi;
