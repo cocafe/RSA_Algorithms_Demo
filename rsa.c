@@ -226,3 +226,39 @@ int generate_key(struct rsa_key *key, uint64_t len_key)
 
         return 0;
 }
+
+/**
+ * generate_public_key()
+ *
+ * @param   key: struct hold all key factors
+ * @param   pkey: public key struct
+ * @return  0 on success
+ */
+int generate_public_key(struct rsa_key *key, struct rsa_public *pkey)
+{
+        if (!key || !key->n || !key->d)
+                return -EINVAL;
+
+        mpz_set(pkey->n, key->n);
+        mpz_set(pkey->d, key->d);
+
+        return 0;
+}
+
+/**
+ * generate_private_key()
+ *
+ * @param   key: struct hold all key factors
+ * @param   pkey: private key struct
+ * @return  0 on success
+ */
+int generate_private_key(struct rsa_key *key, struct rsa_private *pkey)
+{
+        if (!key || !key->n || !key->e)
+                return -EINVAL;
+
+        mpz_set(pkey->n, key->n);
+        mpz_set(pkey->e, key->e);
+
+        return 0;
+}
