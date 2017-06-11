@@ -17,21 +17,24 @@ enum {
 };
 
 struct rsa_key {
-        mpz_t n;
-        mpz_t p;
-        mpz_t q;
-        mpz_t e;
-        mpz_t d;
+        uint64_t        key_len;
+        mpz_t           n;
+        mpz_t           p;
+        mpz_t           q;
+        mpz_t           e;
+        mpz_t           d;
 };
 
 struct rsa_public {
-        mpz_t n;
-        mpz_t d;
+        uint64_t        key_len;
+        mpz_t           n;
+        mpz_t           d;
 };
 
 struct rsa_private {
-        mpz_t n;
-        mpz_t e;
+        uint64_t        key_len;
+        mpz_t           n;
+        mpz_t           e;
 };
 
 int rsa_key_init(struct rsa_key *key);

@@ -396,6 +396,8 @@ int generate_key(struct rsa_key *key, uint64_t len_key)
         if (!key)
                 return -EINVAL;
 
+        key->key_len = len_key;
+
         if (generate_n_p_q(key->n, key->p, key->q, len_key)) {
                 fprintf(stderr, "failed to generate N, P, Q factors\n");
                 return -EFAULT;
@@ -423,6 +425,7 @@ int generate_public_key(struct rsa_key *key, struct rsa_public *pkey)
 
         mpz_set(pkey->n, key->n);
         mpz_set(pkey->d, key->d);
+        pkey->key_len = key->key_len;
 
         return 0;
 }
@@ -441,6 +444,7 @@ int generate_private_key(struct rsa_key *key, struct rsa_private *pkey)
 
         mpz_set(pkey->n, key->n);
         mpz_set(pkey->e, key->e);
+        pkey->key_len = key->key_len;
 
         return 0;
 }
