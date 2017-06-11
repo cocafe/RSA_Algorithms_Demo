@@ -444,3 +444,16 @@ int generate_private_key(struct rsa_key *key, struct rsa_private *pkey)
 
         return 0;
 }
+
+/**
+ * rsa_docrypt() - rsa en/decrypt
+ *
+ * @param   out: output data
+ * @param   in: input data
+ * @param   e: e or d from key
+ * @param   n: n from key
+ */
+void rsa_docrypt(mpz_t out, const mpz_t in, const mpz_t e, const mpz_t n)
+{
+        mpz_powm(out, in, e, n);
+}
