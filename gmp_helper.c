@@ -243,3 +243,44 @@ int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
 
         return 0;
 }
+
+int generate_e_d(mpz_t e, mpz_t d, const mpz_t p, const mpz_t q)
+{
+        mpz_t phi;
+        mpz_t p1;
+        mpz_t q1;
+        mpz_t t;
+
+        if (!e || !d)
+                return -EINVAL;
+
+        mpz_inits(phi, p1, q1, t, NULL);
+
+        /* phi = (p - 1) * (q - 1) */
+        mpz_sub_ui(p1, p, 1);
+        mpz_sub_ui(q1, q, 1);
+        mpz_mul(phi, p1, q1);
+
+        /* A very common choice for e is 65537 */
+        mpz_set_ui(e, 65537);
+
+        /* XXX: duplicated */
+        mpz_gcd(t, e, phi);
+        if (mpz_cmp_ui(t, 1)) {
+                printf("gcd() (e, phi) failed!\n");
+                return -EFAULT;
+        }
+
+        mpz_invert(d, e, phi);
+
+        /* test (e * d) % phi = 1 */
+        mpz_mul(t, e, d);
+        mpz_mod(t, t, phi);
+        if (mpz_cmp_ui(t, 1)) {
+                printf("(e * d) %% phi = 1 failed!\n");
+        }
+
+        mpz_clears(phi, p1, q1, t, NULL);
+
+        return 0;
+}
