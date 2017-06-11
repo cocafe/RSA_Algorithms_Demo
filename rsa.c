@@ -200,3 +200,28 @@ int generate_e_d(mpz_t e, mpz_t d, const mpz_t p, const mpz_t q)
 
         return 0;
 }
+
+/**
+ * generate_key() - generate RSA key at given length
+ *
+ * @param   key: key struct to write
+ * @param   len_key: rsa key length
+ * @return  0 on success
+ */
+int generate_key(struct rsa_key *key, uint64_t len_key)
+{
+        if (!key)
+                return -EINVAL;
+
+        if (generate_n_p_q(key->n, key->p, key->q, len_key)) {
+                fprintf(stderr, "failed to generate N, P, Q factors\n");
+                return -EFAULT;
+        }
+
+        if (generate_e_d(key->e, key->d, key->p, key->q)) {
+                fprintf(stderr, "failed to generate E, Q factors\n");
+                return -EFAULT;
+        }
+
+        return 0;
+}
