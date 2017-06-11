@@ -40,29 +40,6 @@ int rsa_key_clean(struct rsa_key *key)
 }
 
 /**
- * rsa_key_dump() - dump key data to stdout
- *
- * @param   key: pointer to key struct
- * @return
- */
-int rsa_key_dump(struct rsa_key *key)
-{
-        if (!key)
-                return -EINVAL;
-
-        gmp_printf("=== KEY FACTORS ===\n");
-        gmp_printf("n: %#Zx\np: %#Zx\nq: %#Zx\ne: %#Zx\nd: %#Zx\n",
-                   key->n,
-                   key->p,
-                   key->q,
-                   key->e,
-                   key->d);
-        gmp_printf("=== END ===\n");
-
-        return 0;
-}
-
-/**
  * rsa_public_key_init() - init gmp elements in key
  *
  * @param   key: pointer to key struct
@@ -122,6 +99,124 @@ int rsa_private_key_clean(struct rsa_private *key)
                 return -EINVAL;
 
         mpz_clears(key->n, key->e, NULL);
+
+        return 0;
+}
+
+/**
+ * rsa_key_dump() - dump key data to stdout
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_key_dump(struct rsa_key *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        gmp_printf("=== KEY FACTORS ===\n");
+        gmp_printf("n: %#Zx\np: %#Zx\nq: %#Zx\ne: %#Zx\nd: %#Zx\n",
+                   key->n,
+                   key->p,
+                   key->q,
+                   key->e,
+                   key->d);
+        gmp_printf("=== END ===\n");
+
+        return 0;
+}
+
+/**
+ * rsa_key_save() - dump key data to file
+ *
+ * @param   key: pointer to key struct
+ * @param   filename: file path to write
+ * @return  0 on success
+ */
+int rsa_key_save(struct rsa_key *key, const char *filename)
+{
+        FILE *file;
+
+        if (!key || !filename)
+                return -EINVAL;
+
+        file = fopen(filename, "w");
+        if (!file) {
+                fprintf(stderr, "failed to open %s to write\n", filename);
+                return -EACCES;
+        }
+
+        gmp_fprintf(file, "=== RSA KEY FACTORS ===\n");
+        gmp_fprintf(file, "n: %#Zx\np: %#Zx\nq: %#Zx\ne: %#Zx\nd: %#Zx\n",
+                   key->n,
+                   key->p,
+                   key->q,
+                   key->e,
+                   key->d);
+        gmp_fprintf(file, "=== END KEY FACTORS ===\n");
+
+        fflush(file);
+        fclose(file);
+
+        return 0;
+}
+
+/**
+ * rsa_public_key_save() - dump key data to file
+ *
+ * @param   key: pointer to key struct
+ * @param   filename: file path to write
+ * @return  0 on success
+ */
+int rsa_public_key_save(struct rsa_public *key, const char *filename)
+{
+        FILE *file;
+
+        if (!key || !filename)
+                return -EINVAL;
+
+        file = fopen(filename, "w");
+        if (!file) {
+                fprintf(stderr, "failed to open %s to write\n", filename);
+                return -EACCES;
+        }
+
+        gmp_fprintf(file, "=== RSA PUBLIC KEY ===\n");
+        gmp_fprintf(file, "n: %#Zx\nd: %#Zx\n", key->n, key->d);
+        gmp_fprintf(file, "=== END PUBLIC KEY ===\n");
+
+        fflush(file);
+        fclose(file);
+
+        return 0;
+}
+
+/**
+ * rsa_private_key_save() - dump key data to file
+ *
+ * @param   key: pointer to key struct
+ * @param   filename: file path to write
+ * @return  0 on success
+ */
+int rsa_private_key_save(struct rsa_private *key, const char *filename)
+{
+        FILE *file;
+
+        if (!key || !filename)
+                return -EINVAL;
+
+        file = fopen(filename, "w");
+        if (!file) {
+                fprintf(stderr, "failed to open %s to write\n", filename);
+                return -EACCES;
+        }
+
+        gmp_fprintf(file, "=== RSA PRIVATE KEY ===\n");
+        gmp_fprintf(file, "n: %#Zx\ne: %#Zx\n", key->n, key->e);
+        gmp_fprintf(file, "=== END PRIVATE KEY ===\n");
+
+        fflush(file);
+        fclose(file);
 
         return 0;
 }

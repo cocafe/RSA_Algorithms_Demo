@@ -36,13 +36,17 @@ struct rsa_private {
 
 int rsa_key_init(struct rsa_key *key);
 int rsa_key_clean(struct rsa_key *key);
-int rsa_key_dump(struct rsa_key *key);
 
 int rsa_public_key_init(struct rsa_public *key);
 int rsa_public_key_clean(struct rsa_public *key);
 
 int rsa_private_key_init(struct rsa_private *key);
 int rsa_private_key_clean(struct rsa_private *key);
+
+int rsa_key_dump(struct rsa_key *key);
+int rsa_key_save(struct rsa_key *key, const char *filename);
+int rsa_public_key_save(struct rsa_public *key, const char *filename);
+int rsa_private_key_save(struct rsa_private *key, const char *filename);
 
 int generate_key(struct rsa_key *key, uint64_t len_key);
 int generate_public_key(struct rsa_key *key, struct rsa_public *pkey);
