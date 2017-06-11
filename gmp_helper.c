@@ -70,7 +70,6 @@ void __mpz_urandomm(mpz_t rop, const mpz_t n)
         gmp_randclear(rstate);
 }
 
-
 /**
  * mpz_rand_bitlen() - get random number at given binary length
  *
@@ -139,4 +138,65 @@ int mpz_check_binlen(const mpz_t src, uint64_t len)
         mpz_clears(t, NULL);
 
         return res;
+}
+
+
+/**
+ * primality_test() - Solovay-Strassen primality test
+ *
+ * @param   n: a value to test
+ * @param   k: determines the accuracy of the test
+ * @return  1 on *probably* prime, 0 on composite
+ */
+int primality_test(const mpz_t n, uint64_t k)
+{
+        mpz_t a;
+        mpz_t x;
+        mpz_t t;
+
+        mpz_inits(t, a, x, NULL);
+
+        if (!mpz_cmp_ui(n, 1))
+                return 0;
+
+        if (!mpz_cmp_ui(n, 2))
+                return 1;
+
+        mpz_mod_ui(t, n, 2);
+        if (!mpz_cmp_ui(t, 0))
+                return 0;
+
+        /* temporary variable */
+        mpz_sub_ui(t, n, 2);
+        while (k-- > 0) {
+                /* choose a randomly in the range [2, n - 1] */
+                __mpz_urandomm(a, t);
+                mpz_add_ui(a, a, 2);
+
+                mpz_set_ui(x, (uint64_t)mpz_jacobi(a, n));
+
+                /* x == -1 */
+                if (!mpz_cmp_si(x, -1)) {
+                        mpz_set(x, n);
+                        mpz_sub_ui(x, x, 1);
+                }
+
+                /*
+                 * ( a^((n-1)/2) ) (mod n)
+                 */
+                if (mpz_cmp_ui(x, 0)) {
+                        mpz_set(t, n);
+                        mpz_sub_ui(t, t, 1);
+                        mpz_div_ui(t, t, 2);
+
+                        mpz_powm(a, a, t, n);
+
+                        if (!mpz_cmp(a, x))
+                                return 1;
+                }
+        }
+
+        mpz_clears(t, a, x, NULL);
+
+        return 0;
 }
