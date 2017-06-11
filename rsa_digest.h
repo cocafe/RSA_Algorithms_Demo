@@ -1,4 +1,11 @@
 #ifndef SIMPLERSADIGEST_RSA_DIGEST_H
 #define SIMPLERSADIGEST_RSA_DIGEST_H
 
+#define PRIMALITY_TEST_ACCURACY                 (5)
+
+enum {
+        NUM_COMPOSITE = 0,
+        NUM_PRIME,
+};
+
 #endif //SIMPLERSADIGEST_RSA_DIGEST_H
