@@ -77,3 +77,32 @@ int mpz_rand_bitlen(mpz_t rop, uint64_t len)
 
         return 0;
 }
+
+/**
+ * mpz_check_binlen() - verify the number binary length
+ *
+ * @param   src: number to verify
+ * @param   len: binary length to check
+ * @return  0 on proper length, others on failure
+ */
+int mpz_check_binlen(const mpz_t src, uint64_t len)
+{
+        mpz_t t;
+        int res;
+
+        mpz_inits(t, NULL);
+
+        mpz_div_2exp(t, src, len - 1);
+
+        /*
+         * Larger than 1 also does not fit
+         */
+        if (mpz_get_ui(t) == 1)
+                res = 0;
+        else
+                res = 1;
+
+        mpz_clears(t, NULL);
+
+        return res;
+}
