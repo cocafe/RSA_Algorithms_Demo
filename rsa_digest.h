@@ -24,14 +24,28 @@ struct rsa_key {
         mpz_t d;
 };
 
+struct rsa_public {
+        mpz_t n;
+        mpz_t d;
+};
+
 struct rsa_private {
         mpz_t n;
         mpz_t e;
 };
 
-struct rsa_public {
-        mpz_t n;
-        mpz_t d;
-};
+int rsa_key_init(struct rsa_key *key);
+int rsa_key_clean(struct rsa_key *key);
+int rsa_key_dump(struct rsa_key *key);
+
+int rsa_public_key_init(struct rsa_public *key);
+int rsa_public_key_clean(struct rsa_public *key);
+
+int rsa_private_key_init(struct rsa_private *key);
+int rsa_private_key_clean(struct rsa_private *key);
+
+int generate_key(struct rsa_key *key, uint64_t len_key);
+int generate_public_key(struct rsa_key *key, struct rsa_public *pkey);
+int generate_private_key(struct rsa_key *key, struct rsa_private *pkey);
 
 #endif //SIMPLERSADIGEST_RSA_DIGEST_H

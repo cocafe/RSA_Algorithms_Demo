@@ -40,6 +40,93 @@ int rsa_key_clean(struct rsa_key *key)
 }
 
 /**
+ * rsa_key_dump() - dump key data to stdout
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_key_dump(struct rsa_key *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        gmp_printf("=== KEY FACTORS ===\n");
+        gmp_printf("n: %#Zx\np: %#Zx\nq: %#Zx\ne: %#Zx\nd: %#Zx\n",
+                   key->n,
+                   key->p,
+                   key->q,
+                   key->e,
+                   key->d);
+        gmp_printf("=== END ===\n");
+
+        return 0;
+}
+
+/**
+ * rsa_public_key_init() - init gmp elements in key
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_public_key_init(struct rsa_public *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        mpz_inits(key->n, key->d, NULL);
+
+        return 0;
+}
+
+/**
+ * rsa_public_key_clean() - free gmp elements in key
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_public_key_clean(struct rsa_public *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        mpz_clears(key->n, key->d, NULL);
+
+        return 0;
+}
+
+/**
+ * rsa_private_key_init() - init gmp elements in key
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_private_key_init(struct rsa_private *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        mpz_inits(key->n, key->e, NULL);
+
+        return 0;
+}
+
+/**
+ * rsa_private_key_clean() - free gmp elements in key
+ *
+ * @param   key: pointer to key struct
+ * @return
+ */
+int rsa_private_key_clean(struct rsa_private *key)
+{
+        if (!key)
+                return -EINVAL;
+
+        mpz_clears(key->n, key->e, NULL);
+
+        return 0;
+}
+
+/**
  * primality_test() - Solovay-Strassen primality test
  *
  * @param   n: a value to test
