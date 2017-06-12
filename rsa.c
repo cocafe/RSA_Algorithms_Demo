@@ -147,14 +147,14 @@ int rsa_key_save(struct rsa_key *key, const char *filename)
                 return -EACCES;
         }
 
-        gmp_fprintf(file, "=== RSA KEY FACTORS ===\n");
+        gmp_fprintf(file, "=== RSA KEY ELEMENTS ===\n");
         gmp_fprintf(file, "n: %#Zx\np: %#Zx\nq: %#Zx\ne: %#Zx\nd: %#Zx\n",
                    key->n,
                    key->p,
                    key->q,
                    key->e,
                    key->d);
-        gmp_fprintf(file, "=== END KEY FACTORS ===\n");
+        gmp_fprintf(file, "=== END KEY ELEMENTS ===\n");
 
         fflush(file);
         fclose(file);
@@ -182,9 +182,10 @@ int rsa_public_key_save(struct rsa_public *key, const char *filename)
                 return -EACCES;
         }
 
-        gmp_fprintf(file, "=== RSA PUBLIC KEY ===\n");
-        gmp_fprintf(file, "n: %#Zx\nd: %#Zx\n", key->n, key->e);
-        gmp_fprintf(file, "=== END PUBLIC KEY ===\n");
+        /* ASN.1 style */
+        gmp_fprintf(file, "RSAPublicKey ::= SEQUENCE {\n");
+        gmp_fprintf(file, "  modulus %Zd, --n\n", key->n);
+        gmp_fprintf(file, "  publicExponent %Zd --e }\n", key->e);
 
         fflush(file);
         fclose(file);
