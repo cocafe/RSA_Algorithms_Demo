@@ -449,31 +449,31 @@ int rsa_public_key_generate(struct rsa_public *pub, struct rsa_private *priv)
 }
 
 /**
- * rsa_docrypt() - rsa en/decrypt
+ * rsa_docrypto() - rsa en/decrypt
  *
  * @param   out: output data
  * @param   in: input data
- * @param   e: e or d from key
+ * @param   c: e or d exponent from key
  * @param   n: n from key
  */
-void rsa_docrypt(mpz_t out, const mpz_t in, const mpz_t e, const mpz_t n)
+void rsa_docrypto(mpz_t out, const mpz_t in, const mpz_t c, const mpz_t n)
 {
-        mpz_powm(out, in, e, n);
+        mpz_powm(out, in, c, n);
 }
 
 /**
- * rsa_encrypt_file() - encrypt file
+ * rsa_encrypt_file() - encrypt file with RSA algorithm
  *
  * @param   file_crypt: encrypted file path
  * @param   file_plain: file to encrypt
- * @param   e: E or D factor in key
- * @param   n: N factor in key
+ * @param   c: E or D exponent in key
+ * @param   n: N modulus in key
  * @param   key_len: length of key
  * @return  0 on success
  */
 int rsa_encrypt_file(const char *file_encrypt,
                      const char *file_plain,
-                     const mpz_t e,
+                     const mpz_t c,
                      const mpz_t n,
                      uint64_t key_len)
 {
@@ -484,7 +484,7 @@ int rsa_encrypt_file(const char *file_encrypt,
         int32_t res;
         uint8_t ch;
 
-        if (!file_encrypt || !file_plain || !e || !n)
+        if (!file_encrypt || !file_plain || !c || !n)
                 return -EINVAL;
 
         fplain = fopen(file_plain, "r");
@@ -510,7 +510,7 @@ int rsa_encrypt_file(const char *file_encrypt,
 
                 mpz_set_ui(dplain, ch);
 
-                rsa_docrypt(dcrypt, dplain, e, n);
+                rsa_docrypto(dcrypt, dplain, c, n);
                 gmp_fprintf(fcrypt, "%Zx\n", dcrypt);
         }
 
@@ -523,9 +523,19 @@ int rsa_encrypt_file(const char *file_encrypt,
         return 0;
 }
 
+/**
+ * rsa_decrypt_file() - decrypt file with RSA algorithm
+ *
+ * @param   file_decrypt: file path to save decrypted data
+ * @param   file_encrypt: file path to encrypted file
+ * @param   c: E or D exponent from key
+ * @param   n: N modulus from key
+ * @param   key_len: key bit length
+ * @return  0 on success
+ */
 int rsa_decrypt_file(const char *file_decrypt,
                      const char *file_encrypt,
-                     const mpz_t e,
+                     const mpz_t c,
                      const mpz_t n,
                      uint64_t key_len)
 {
@@ -535,7 +545,7 @@ int rsa_decrypt_file(const char *file_decrypt,
         mpz_t ddecry;
         uint8_t ch;
 
-        if (!file_decrypt || !file_encrypt || !e || !n)
+        if (!file_decrypt || !file_encrypt || !c || !n)
                 return -EINVAL;
 
         fencry = fopen(file_encrypt, "r");
@@ -557,7 +567,7 @@ int rsa_decrypt_file(const char *file_decrypt,
                 if (feof(fencry))
                         break;
 
-                rsa_docrypt(ddecry, dencry, e, n);
+                rsa_docrypto(ddecry, dencry, c, n);
                 ch = (uint8_t)mpz_get_ui(ddecry);
                 fputc(ch, fdecry);
         }

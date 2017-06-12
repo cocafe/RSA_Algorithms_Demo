@@ -53,13 +53,13 @@ int rsa_public_key_generate(struct rsa_public *pub, struct rsa_private *priv);
 
 int rsa_encrypt_file(const char *file_encrypt,
                      const char *file_plain,
-                     const mpz_t e,
+                     const mpz_t c,
                      const mpz_t n,
                      uint64_t key_len);
 
 int rsa_decrypt_file(const char *file_decrypt,
                      const char *file_encrypt,
-                     const mpz_t e,
+                     const mpz_t c,
                      const mpz_t n,
                      uint64_t key_len);
 
