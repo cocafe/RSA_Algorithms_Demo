@@ -51,7 +51,7 @@ int rsa_public_key_init(struct rsa_public *key)
         if (!key)
                 return -EINVAL;
 
-        mpz_inits(key->n, key->d, NULL);
+        mpz_inits(key->n, key->e, NULL);
 
         return 0;
 }
@@ -67,7 +67,7 @@ int rsa_public_key_clean(struct rsa_public *key)
         if (!key)
                 return -EINVAL;
 
-        mpz_clears(key->n, key->d, NULL);
+        mpz_clears(key->n, key->e, NULL);
 
         return 0;
 }
@@ -83,7 +83,7 @@ int rsa_private_key_init(struct rsa_private *key)
         if (!key)
                 return -EINVAL;
 
-        mpz_inits(key->n, key->e, NULL);
+        mpz_inits(key->n, key->d, NULL);
 
         return 0;
 }
@@ -99,7 +99,7 @@ int rsa_private_key_clean(struct rsa_private *key)
         if (!key)
                 return -EINVAL;
 
-        mpz_clears(key->n, key->e, NULL);
+        mpz_clears(key->n, key->d, NULL);
 
         return 0;
 }
@@ -183,7 +183,7 @@ int rsa_public_key_save(struct rsa_public *key, const char *filename)
         }
 
         gmp_fprintf(file, "=== RSA PUBLIC KEY ===\n");
-        gmp_fprintf(file, "n: %#Zx\nd: %#Zx\n", key->n, key->d);
+        gmp_fprintf(file, "n: %#Zx\nd: %#Zx\n", key->n, key->e);
         gmp_fprintf(file, "=== END PUBLIC KEY ===\n");
 
         fflush(file);
@@ -213,7 +213,7 @@ int rsa_private_key_save(struct rsa_private *key, const char *filename)
         }
 
         gmp_fprintf(file, "=== RSA PRIVATE KEY ===\n");
-        gmp_fprintf(file, "n: %#Zx\ne: %#Zx\n", key->n, key->e);
+        gmp_fprintf(file, "n: %#Zx\ne: %#Zx\n", key->n, key->d);
         gmp_fprintf(file, "=== END PRIVATE KEY ===\n");
 
         fflush(file);
@@ -425,7 +425,7 @@ int generate_public_key(struct rsa_key *key, struct rsa_public *pkey)
                 return -EINVAL;
 
         mpz_set(pkey->n, key->n);
-        mpz_set(pkey->d, key->d);
+        mpz_set(pkey->e, key->e);
         pkey->key_len = key->key_len;
 
         return 0;
@@ -444,7 +444,7 @@ int generate_private_key(struct rsa_key *key, struct rsa_private *pkey)
                 return -EINVAL;
 
         mpz_set(pkey->n, key->n);
-        mpz_set(pkey->e, key->e);
+        mpz_set(pkey->d, key->d);
         pkey->key_len = key->key_len;
 
         return 0;

@@ -25,13 +25,13 @@ struct rsa_key {
         mpz_t           d;
 };
 
-struct rsa_public {
+struct rsa_private {
         uint64_t        key_len;
         mpz_t           n;
         mpz_t           d;
 };
 
-struct rsa_private {
+struct rsa_public {
         uint64_t        key_len;
         mpz_t           n;
         mpz_t           e;
