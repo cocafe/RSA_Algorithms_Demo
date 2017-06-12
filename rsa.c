@@ -288,27 +288,32 @@ int primality_test(const mpz_t n, uint64_t k)
  * @param   n: n to write
  * @param   p: p to write
  * @param   q: q to write
- * @param   len_n: the length of n, aka the length of RSA key
+ * @param   k: binary length of n in octets
  * @return  0 on success
  */
-int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
+int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t k)
 {
-        if (!n || !p || !q || !len_n)
+        uint64_t key_len;
+
+        if (!n || !p || !q || !k)
                 return -EINVAL;
 
-        if (len_n % 2)
+        /* for the encryption process, k > 12 */
+        if (k % 2 || k <= 12)
                 return -EINVAL;
+
+        key_len = k * 8;
 
         while (1) {
-                mpz_rand_bitlen(p, len_n / 2);
-                mpz_rand_bitlen(q, len_n / 2);
+                mpz_rand_bitlen(p, key_len / 2);
+                mpz_rand_bitlen(q, key_len / 2);
 
                 mpz_mul(n, p, q);
-                if (mpz_check_binlen(n, len_n))
+                if (mpz_check_binlen(n, key_len))
                         continue;
 
                 while (1) {
-                        mpz_rand_bitlen(p, len_n / 2);
+                        mpz_rand_bitlen(p, key_len / 2);
 
                         if (primality_test(p, PRIMALITY_TEST_ACCURACY) ==
                             NUM_COMPOSITE)
@@ -318,7 +323,7 @@ int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
                 }
 
                 while (1) {
-                        mpz_rand_bitlen(q, len_n / 2);
+                        mpz_rand_bitlen(q, key_len / 2);
 
                         if (primality_test(q, PRIMALITY_TEST_ACCURACY) ==
                             NUM_COMPOSITE)
@@ -328,7 +333,7 @@ int generate_n_p_q(mpz_t n, mpz_t p, mpz_t q, uint64_t len_n)
                 }
 
                 mpz_mul(n, p, q);
-                if (!mpz_check_binlen(n, len_n))
+                if (!mpz_check_binlen(n, key_len))
                         break;
         }
 
@@ -399,7 +404,7 @@ int generate_key(struct rsa_key *key, uint64_t len_key)
 
         key->key_len = len_key;
 
-        if (generate_n_p_q(key->n, key->p, key->q, len_key)) {
+        if (generate_n_p_q(key->n, key->p, key->q, len_key / 8)) {
                 fprintf(stderr, "failed to generate N, P, Q factors\n");
                 return -EFAULT;
         }
