@@ -165,8 +165,8 @@ int rsa_public_key_dump(struct rsa_public *key, FILE *__stream)
          * ASN.1 style
          */
         gmp_fprintf(__stream, "RSAPublicKey ::= SEQUENCE {\n");
-        gmp_fprintf(__stream, "  modulus %Zd, --n\n", key->n);
-        gmp_fprintf(__stream, "  publicExponent %Zd --e }\n", key->e);
+        gmp_fprintf(__stream, "  modulus %Zd, -- n\n", key->n);
+        gmp_fprintf(__stream, "  publicExponent %Zd -- e }\n", key->e);
 
         return 0;
 }
