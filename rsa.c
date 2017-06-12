@@ -14,12 +14,21 @@
  * @param   key: pointer to key struct
  * @return
  */
-int rsa_key_init(struct rsa_key *key)
+int rsa_private_key_init(struct rsa_private *key)
 {
         if (!key)
                 return -EINVAL;
 
-        mpz_inits(key->n, key->p, key->q, key->e, key->d, NULL);
+        memset(key, 0x00, sizeof(struct rsa_private));
+        mpz_inits(key->n,
+                   key->p,
+                   key->q,
+                   key->e,
+                   key->d,
+                   key->exp1,
+                   key->exp2,
+                   key->coef,
+                   NULL);
 
         return 0;
 }
@@ -30,12 +39,21 @@ int rsa_key_init(struct rsa_key *key)
  * @param   key: pointer to key struct
  * @return
  */
-int rsa_key_clean(struct rsa_key *key)
+int rsa_private_key_clean(struct rsa_private *key)
 {
         if (!key)
                 return -EINVAL;
 
-        mpz_clears(key->n, key->p, key->q, key->e, key->d, NULL);
+        memset(key, 0x00, sizeof(struct rsa_private));
+        mpz_clears(key->n,
+                   key->p,
+                   key->q,
+                   key->e,
+                   key->d,
+                   key->exp1,
+                   key->exp2,
+                   key->coef,
+                   NULL);
 
         return 0;
 }
@@ -73,68 +91,44 @@ int rsa_public_key_clean(struct rsa_public *key)
 }
 
 /**
- * rsa_private_key_init() - init gmp elements in key
+ * rsa_private_key_dump() - dump key data to file stream
  *
  * @param   key: pointer to key struct
+ * @param   __stream: pointer to file stream
  * @return
  */
-int rsa_private_key_init(struct rsa_private *key)
+int rsa_private_key_dump(struct rsa_private *key, FILE *__stream)
 {
         if (!key)
                 return -EINVAL;
 
-        mpz_inits(key->n, key->d, NULL);
+        /*
+         * ASN.1 style
+         */
+        gmp_fprintf(__stream, "RSAPrivateKey ::= SEQUENCE {\n");
+        gmp_fprintf(__stream, "  version %lu\n", key->version);
+        gmp_fprintf(__stream, "  modulus %Zd, -- n\n", key->n);
+        gmp_fprintf(__stream, "  publicExponent %Zd, -- e\n", key->e);
+        gmp_fprintf(__stream, "  privateExponent %Zd, -- d\n", key->d);
+        gmp_fprintf(__stream, "  prime1 %Zd, -- p\n", key->p);
+        gmp_fprintf(__stream, "  prime2 %Zd, -- q\n", key->q);
+        gmp_fprintf(__stream, "  exponent1 %Zd, -- d mod (p-1)\n", key->exp1);
+        gmp_fprintf(__stream, "  exponent2 %Zd, -- d mod (q-1)\n", key->exp2);
+        gmp_fprintf(__stream, "  coefficient %Zd, -- (inverse of q) mod p }", key->coef);
+        gmp_fprintf(__stream, "\n");
+        gmp_fprintf(__stream, "Version ::= %lu\n", key->version);
 
         return 0;
 }
 
 /**
- * rsa_private_key_clean() - free gmp elements in key
- *
- * @param   key: pointer to key struct
- * @return
- */
-int rsa_private_key_clean(struct rsa_private *key)
-{
-        if (!key)
-                return -EINVAL;
-
-        mpz_clears(key->n, key->d, NULL);
-
-        return 0;
-}
-
-/**
- * rsa_key_dump() - dump key data to stdout
- *
- * @param   key: pointer to key struct
- * @return
- */
-int rsa_key_dump(struct rsa_key *key)
-{
-        if (!key)
-                return -EINVAL;
-
-        gmp_printf("=== KEY FACTORS ===\n");
-        gmp_printf("n: %#Zx\np: %#Zx\nq: %#Zx\ne: %#Zx\nd: %#Zx\n",
-                   key->n,
-                   key->p,
-                   key->q,
-                   key->e,
-                   key->d);
-        gmp_printf("=== END ===\n");
-
-        return 0;
-}
-
-/**
- * rsa_key_save() - dump key data to file
+ * rsa_private_key_save() - dump key data to file
  *
  * @param   key: pointer to key struct
  * @param   filename: file path to write
  * @return  0 on success
  */
-int rsa_key_save(struct rsa_key *key, const char *filename)
+int rsa_private_key_save(struct rsa_private *key, const char *filename)
 {
         FILE *file;
 
@@ -147,17 +141,31 @@ int rsa_key_save(struct rsa_key *key, const char *filename)
                 return -EACCES;
         }
 
-        gmp_fprintf(file, "=== RSA KEY ELEMENTS ===\n");
-        gmp_fprintf(file, "n: %#Zx\np: %#Zx\nq: %#Zx\ne: %#Zx\nd: %#Zx\n",
-                   key->n,
-                   key->p,
-                   key->q,
-                   key->e,
-                   key->d);
-        gmp_fprintf(file, "=== END KEY ELEMENTS ===\n");
+        rsa_private_key_dump(key, file);
 
         fflush(file);
         fclose(file);
+
+        return 0;
+}
+
+/**
+ * rsa_public_key_dump() - dump key data to file stream
+ * @param   key: pointer to key struct
+ * @param   __stream: pointer to file stream
+ * @return
+ */
+int rsa_public_key_dump(struct rsa_public *key, FILE *__stream)
+{
+        if (!key)
+                return -EINVAL;
+
+        /*
+         * ASN.1 style
+         */
+        gmp_fprintf(__stream, "RSAPublicKey ::= SEQUENCE {\n");
+        gmp_fprintf(__stream, "  modulus %Zd, --n\n", key->n);
+        gmp_fprintf(__stream, "  publicExponent %Zd --e }\n", key->e);
 
         return 0;
 }
@@ -183,39 +191,7 @@ int rsa_public_key_save(struct rsa_public *key, const char *filename)
         }
 
         /* ASN.1 style */
-        gmp_fprintf(file, "RSAPublicKey ::= SEQUENCE {\n");
-        gmp_fprintf(file, "  modulus %Zd, --n\n", key->n);
-        gmp_fprintf(file, "  publicExponent %Zd --e }\n", key->e);
-
-        fflush(file);
-        fclose(file);
-
-        return 0;
-}
-
-/**
- * rsa_private_key_save() - dump key data to file
- *
- * @param   key: pointer to key struct
- * @param   filename: file path to write
- * @return  0 on success
- */
-int rsa_private_key_save(struct rsa_private *key, const char *filename)
-{
-        FILE *file;
-
-        if (!key || !filename)
-                return -EINVAL;
-
-        file = fopen(filename, "w");
-        if (!file) {
-                fprintf(stderr, "failed to open %s to write\n", filename);
-                return -EACCES;
-        }
-
-        gmp_fprintf(file, "=== RSA PRIVATE KEY ===\n");
-        gmp_fprintf(file, "n: %#Zx\ne: %#Zx\n", key->n, key->d);
-        gmp_fprintf(file, "=== END PRIVATE KEY ===\n");
+        rsa_public_key_dump(key, file);
 
         fflush(file);
         fclose(file);
@@ -392,66 +368,77 @@ int generate_e_d(mpz_t e, mpz_t d, const mpz_t p, const mpz_t q)
 }
 
 /**
- * generate_key() - generate RSA key at given length
+ * generate_exp_coef() - generate other elements in key
  *
- * @param   key: key struct to write
- * @param   len_key: rsa key length
+ * @param   key: pointer to key struct
+ * @return
+ */
+int generate_exp_coef(struct rsa_private *key)
+{
+        mpz_t t;
+
+        mpz_inits(t, NULL);
+
+        if (!key)
+                return -EINVAL;
+
+        mpz_sub_ui(t, key->p, 1);
+        mpz_mod(key->exp1, key->d, t);
+
+        mpz_sub_ui(t, key->q, 1);
+        mpz_mod(key->exp2, key->d, t);
+
+        mpz_invert(key->coef, key->q, key->p);
+
+        mpz_clears(t, NULL);
+
+        return 0;
+}
+
+/**
+ * rsa_private_key_generate() - generate rsa private key
+ *
+ * @param   key: pointer to private key struct
+ * @param   length: length of key in bits
  * @return  0 on success
  */
-int generate_key(struct rsa_key *key, uint64_t len_key)
+int rsa_private_key_generate(struct rsa_private *key, uint64_t length)
 {
         if (!key)
                 return -EINVAL;
 
-        key->key_len = len_key;
+        key->key_len = length;
 
-        if (generate_n_p_q(key->n, key->p, key->q, len_key / 8)) {
-                fprintf(stderr, "failed to generate N, P, Q factors\n");
+        if (generate_n_p_q(key->n, key->p, key->q, length / 8)) {
+                fprintf(stderr, "failed to generate N, P, Q elements\n");
                 return -EFAULT;
         }
 
         if (generate_e_d(key->e, key->d, key->p, key->q)) {
-                fprintf(stderr, "failed to generate E, Q factors\n");
+                fprintf(stderr, "failed to generate E, Q elements\n");
                 return -EFAULT;
         }
 
-        return 0;
-}
-
-/**
- * generate_public_key()
- *
- * @param   key: struct hold all key factors
- * @param   pkey: public key struct
- * @return  0 on success
- */
-int generate_public_key(struct rsa_key *key, struct rsa_public *pkey)
-{
-        if (!key || !key->n || !key->d)
-                return -EINVAL;
-
-        mpz_set(pkey->n, key->n);
-        mpz_set(pkey->e, key->e);
-        pkey->key_len = key->key_len;
+        generate_exp_coef(key);
 
         return 0;
 }
 
 /**
- * generate_private_key()
+ * rsa_public_key_generate() - generate public key from private key
  *
- * @param   key: struct hold all key factors
- * @param   pkey: private key struct
+ * @param   pub: pointer to public key struct
+ * @param   priv: pointer to private key struct
  * @return  0 on success
  */
-int generate_private_key(struct rsa_key *key, struct rsa_private *pkey)
+int rsa_public_key_generate(struct rsa_public *pub, struct rsa_private *priv)
 {
-        if (!key || !key->n || !key->e)
+        if (!pub || !priv || !priv->e || !priv->n)
                 return -EINVAL;
 
-        mpz_set(pkey->n, key->n);
-        mpz_set(pkey->d, key->d);
-        pkey->key_len = key->key_len;
+        mpz_set(pub->n, priv->n);
+        mpz_set(pub->e, priv->e);
+        pub->key_len = priv->key_len;
 
         return 0;
 }
