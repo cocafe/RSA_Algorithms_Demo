@@ -1,6 +1,10 @@
 #ifndef SIMPLERSADIGEST_GMP_HELPER_H
 #define SIMPLERSADIGEST_GMP_HELPER_H
 
+#ifndef _STDINT_H
+#error include <stdint.h> first
+#endif /* _STDINT_H */
+
 uint64_t urandom_read();
 
 void __mpz_urandomb(mpz_t rop, mp_bitcnt_t n);

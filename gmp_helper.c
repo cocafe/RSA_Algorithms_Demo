@@ -5,7 +5,6 @@
 #include <gmp.h>
 
 #include "gmp_helper.h"
-#include "rsa_digest.h"
 
 /**
  * urandom_read() - read /dev/urandom
