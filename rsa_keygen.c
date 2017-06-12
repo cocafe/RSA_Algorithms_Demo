@@ -6,7 +6,6 @@
 
 #include <gmp.h>
 
-#include "gmp_helper.h"
 #include "rsa.h"
 
 /**

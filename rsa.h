@@ -5,6 +5,8 @@
 #error include gmp.h first
 #endif /* __GMP_H__ */
 
+#include "gmp_helper.h"
+
 #define PRIMALITY_TEST_ACCURACY                 (5)
 
 enum {
