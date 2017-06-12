@@ -27,7 +27,7 @@ int rsa_private_key_init(struct rsa_private *key)
                    key->d,
                    key->exp1,
                    key->exp2,
-                   key->coef,
+                   key->coeff,
                    NULL);
 
         return 0;
@@ -52,7 +52,7 @@ int rsa_private_key_clean(struct rsa_private *key)
                    key->d,
                    key->exp1,
                    key->exp2,
-                   key->coef,
+                   key->coeff,
                    NULL);
 
         return 0;
@@ -114,7 +114,7 @@ int rsa_private_key_dump(struct rsa_private *key, FILE *__stream)
         gmp_fprintf(__stream, "  prime2 %Zd, -- q\n", key->q);
         gmp_fprintf(__stream, "  exponent1 %Zd, -- d mod (p-1)\n", key->exp1);
         gmp_fprintf(__stream, "  exponent2 %Zd, -- d mod (q-1)\n", key->exp2);
-        gmp_fprintf(__stream, "  coefficient %Zd, -- (inverse of q) mod p }", key->coef);
+        gmp_fprintf(__stream, "  coefficient %Zd, -- (inverse of q) mod p }", key->coeff);
         gmp_fprintf(__stream, "\n");
         gmp_fprintf(__stream, "Version ::= %lu\n", key->version);
 
@@ -388,7 +388,11 @@ int generate_exp_coef(struct rsa_private *key)
         mpz_sub_ui(t, key->q, 1);
         mpz_mod(key->exp2, key->d, t);
 
-        mpz_invert(key->coef, key->q, key->p);
+        mpz_invert(key->coeff, key->q, key->p);
+
+//        mpz_sub_ui(t, key->p, 2);
+//        mpz_powm(t, key->q, t, key->p);
+//        gmp_printf("coef: %Zd\n", t);
 
         mpz_clears(t, NULL);
 

@@ -26,7 +26,8 @@ struct rsa_private {
         mpz_t           d;              /* private exponent */
         mpz_t           exp1;           /* exponent1: d mod (p-1) */
         mpz_t           exp2;           /* exponent2: d mod (q-1) */
-        mpz_t           coef;           /* (inverse of q) mod p */
+        mpz_t           coeff;          /* Chinese Remainder Theorem
+                                         * coefficient: (inverse of q) mod p */
 };
 
 struct rsa_public {
