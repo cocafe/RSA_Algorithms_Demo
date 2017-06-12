@@ -4,6 +4,8 @@ project(SimpleRSADigest)
 
 set(CMAKE_C_STANDARD 11)
 
+set(CMAKE_C_FLAGS -Wall)
+
 set(SOURCE_FILES main.c gmp_helper.c gmp_helper.h rsa.c rsa_digest.h)
 
 add_executable(SimpleRSADigest ${SOURCE_FILES})
