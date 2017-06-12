@@ -408,6 +408,7 @@ int rsa_private_key_generate(struct rsa_private *key, uint64_t length)
                 return -EINVAL;
 
         key->key_len = length;
+        key->version = 0x00;    /* RFC2313 */
 
         if (generate_n_p_q(key->n, key->p, key->q, length / 8)) {
                 fprintf(stderr, "failed to generate N, P, Q elements\n");
