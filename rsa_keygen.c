@@ -438,7 +438,7 @@ int rsa_private_key_generate(struct rsa_private *key, uint64_t length)
  */
 int rsa_public_key_generate(struct rsa_public *pub, struct rsa_private *priv)
 {
-        if (!pub || !priv || !priv->e || !priv->n)
+        if (!pub || !priv)
                 return -EINVAL;
 
         mpz_set(pub->n, priv->n);
