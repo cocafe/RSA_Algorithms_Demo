@@ -5,6 +5,7 @@ project(SimpleRSADigest)
 set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_C_FLAGS -Wall)
+set(CMAKE_C_FLAGS -Wextra)
 
 set(SOURCE_FILES main.c gmp_helper.c gmp_helper.h rsa.h rsa_keygen.c rsa_crypto.c)
 

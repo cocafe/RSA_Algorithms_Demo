@@ -79,8 +79,8 @@ int rsa_encrypt_block_encode(struct rsa_encrypt_block *EB, const uint8_t BT, con
 {
         uint64_t octet_data;
         uint64_t octet_pad;
+        uint32_t idx;
         uint8_t pad;
-        int32_t idx;
 
         if (!EB)
                 return -EINVAL;
@@ -151,7 +151,7 @@ int rsa_encrypt_block_encode(struct rsa_encrypt_block *EB, const uint8_t BT, con
 int rsa_encrypt_block_decode(struct rsa_encrypt_block *EB, uint8_t *D)
 {
         int32_t found;
-        int32_t idx;
+        uint32_t idx;
         uint8_t BT;
 
         if (!EB)
@@ -212,7 +212,7 @@ int rsa_encrypt_block_dump(struct rsa_encrypt_block *blk)
 
         printf("(k=%lu) ", blk->k);
 
-        for (int i = 0; i < blk->k; ++i) {
+        for (uint32_t i = 0; i < blk->k; ++i) {
                 printf("%02x ", blk->octet[i]);
         }
 
@@ -244,7 +244,7 @@ int rsa_encrypt_block_convert_string(struct rsa_encrypt_block *blk, char **str)
 
         *str = buf;
 
-        for (int i = 0, j = 0; i < blk->k; ++i, j += 2) {
+        for (uint32_t i = 0, j = 0; i < blk->k; ++i, j += 2) {
                 sprintf(octet, "%02x", blk->octet[i]);
                 memcpy(&buf[j], octet, sizeof(octet));
         }
@@ -275,7 +275,7 @@ int rsa_encrypt_block_convert_integer(struct rsa_encrypt_block *EB, mpz_t x)
          * x = SUM 2^(8(k-i)) EBi
          *                    i=1
          */
-        for (int i = 0; i < EB->k; ++i) {
+        for (uint32_t i = 0; i < EB->k; ++i) {
                 mpz_set_ui(t, 2);
                 mpz_pow_ui(t, t, 8 * (EB->k - (i + 1)));
                 mpz_mul_ui(t, t, EB->octet[i]);
@@ -313,7 +313,7 @@ int rsa_encrypt_block_from_integer(struct rsa_encrypt_block *EB, const mpz_t y)
          * y = SUM 2^(8(k-i)) EDi
          *                    i=1
          */
-        for (int i = 0; i < EB->k; ++i) {
+        for (uint32_t i = 0; i < EB->k; ++i) {
                 mpz_set(t, y);
                 mpz_div_2exp(r, t, (EB->k - (i + 1)) * 8);
 
@@ -487,7 +487,7 @@ int rsa_decrypt_file(const char *file_decrypt,
         mpz_t                           y;      /* Encrypted integer block */
         int32_t                         ret = 0;
         int32_t                         read;
-        int32_t                         count;  /* String iterator */
+        uint32_t                        count;  /* String iterator */
         uint8_t                         ch;
         uint8_t                         D;      /* Decrypted data */
 
