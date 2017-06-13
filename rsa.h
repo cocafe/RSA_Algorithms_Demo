@@ -49,12 +49,38 @@ int rsa_public_key_save(struct rsa_public *key, const char *filename);
 int rsa_private_key_generate(struct rsa_private *key, uint64_t length);
 int rsa_public_key_generate(struct rsa_public *pub, struct rsa_private *priv);
 
+/**
+ *
+ * Structure of encryption-block
+ *
+ *         0     1    2...
+ *    EB = 00 || BT || PS || 00 || D
+ *        octet
+ *
+ * Octet length of EB = k
+ +
+ */
+struct rsa_encrypt_block {
+        uint8_t *octet;         /* aka byte */
+        uint64_t k;
+};
+
+enum {
+        BT_TYPE_00 = 0x00,
+        BT_TYPE_01 = 0x01,
+        BT_TYPE_02 = 0x02,
+        NUM_BT_TYPE,
+};
+
+#define EB_BT_OCTET_OFFSET              (1 << 0)
+#define EB_PS_OCTET_OFFSET              (1 << 1)
+
 int rsa_encrypt_file(const char *file_encrypt,
                      const char *file_plain,
                      const mpz_t c,
                      const mpz_t n,
-                     uint64_t key_len);
-
+                     uint64_t key_len,
+                     uint8_t BT);
 int rsa_decrypt_file(const char *file_decrypt,
                      const char *file_encrypt,
                      const mpz_t c,
