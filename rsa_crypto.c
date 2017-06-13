@@ -505,8 +505,8 @@ int rsa_decrypt_file(const char *file_decrypt,
                 goto err_fpdecrypt;
         }
 
-        /* Char is in hex, + [\n] + [\0] */
-        str_len = (sizeof(char) * key_len / 4) + 2;
+        /* hex chars + [\0] */
+        str_len = (sizeof(char) * key_len / 4) + 1;
         str_encrypt = (char *)calloc(1, str_len);
         if (!str_encrypt) {
                 ret = -ENOMEM;
