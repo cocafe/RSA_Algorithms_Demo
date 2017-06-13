@@ -11,7 +11,7 @@
  *
  * @return  random uint64
  */
-uint64_t urandom_read()
+uint64_t urandom_read(void)
 {
         FILE *dev;
         uint64_t res;
