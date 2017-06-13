@@ -75,6 +75,9 @@ enum {
 #define EB_BT_OCTET_OFFSET              (1 << 0)
 #define EB_PS_OCTET_OFFSET              (1 << 1)
 
+#define PRIVATE_KEY_BT_DEFAULT          (BT_TYPE_01)
+#define PUBLIC_KEY_BT_DEFAULT           (BT_TYPE_02)
+
 int rsa_encrypt_file(const char *file_encrypt,
                      const char *file_plain,
                      const mpz_t c,
@@ -86,5 +89,19 @@ int rsa_decrypt_file(const char *file_decrypt,
                      const mpz_t c,
                      const mpz_t n,
                      uint64_t key_len);
+
+int rsa_private_key_encrypt(struct rsa_private *key,
+                            const char *file_encrypt,
+                            const char *file_plain);
+int rsa_private_key_decrypt(struct rsa_private *key,
+                            const char *file_decrypt,
+                            const char *file_encrypt);
+
+int rsa_public_key_encrypt(struct rsa_public *key,
+                           const char *file_encrypt,
+                           const char *file_plain);
+int rsa_public_key_decrypt(struct rsa_public *key,
+                           const char *file_decrypt,
+                           const char *file_encrypt);
 
 #endif //SIMPLERSADIGEST_RSA_DIGEST_H

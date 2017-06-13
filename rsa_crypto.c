@@ -570,3 +570,49 @@ err_fpdecrypt:
 
         return ret;
 }
+
+int rsa_private_key_encrypt(struct rsa_private *key,
+                            const char *file_encrypt,
+                            const char *file_plain)
+{
+        return rsa_encrypt_file(file_encrypt,
+                                file_plain,
+                                key->d,
+                                key->n,
+                                key->key_len,
+                                PRIVATE_KEY_BT_DEFAULT);
+}
+
+int rsa_private_key_decrypt(struct rsa_private *key,
+                            const char *file_decrypt,
+                            const char *file_encrypt)
+{
+        return rsa_decrypt_file(file_decrypt,
+                                file_encrypt,
+                                key->d,
+                                key->n,
+                                key->key_len);
+}
+
+int rsa_public_key_encrypt(struct rsa_public *key,
+                           const char *file_encrypt,
+                           const char *file_plain)
+{
+        return rsa_encrypt_file(file_encrypt,
+                                file_plain,
+                                key->e,
+                                key->n,
+                                key->key_len,
+                                PUBLIC_KEY_BT_DEFAULT);
+}
+
+int rsa_public_key_decrypt(struct rsa_public *key,
+                           const char *file_decrypt,
+                           const char *file_encrypt)
+{
+        return rsa_decrypt_file(file_decrypt,
+                                file_encrypt,
+                                key->e,
+                                key->n,
+                                key->key_len);
+}
