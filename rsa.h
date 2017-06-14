@@ -6,6 +6,7 @@
 #endif /* __GMP_H__ */
 
 #include "gmp_helper.h"
+#include "misc_helper.h"
 
 #define PRIMALITY_TEST_ACCURACY                 (5)
 
