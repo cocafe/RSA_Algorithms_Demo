@@ -240,16 +240,24 @@ int rsa_encrypt_block_dump(struct rsa_encrypt_block *blk)
         return 0;
 }
 
+char *rsa_encrypt_block_alloc_string(struct rsa_encrypt_block *blk)
+{
+        char *buf = (char *)calloc(blk->k * 2 + 2, sizeof(char));
+
+        if (!buf)
+                return NULL;
+
+        return buf;
+}
+
 /**
  * rsa_entrypt_block_convert_string() - convert encryption block to string
- *
- * XXX: remember to free the the memory str allocated
  *
  * @param   blk: pointer to encryption block
  * @param   str: pointer to char pointer
  * @return  0 on success
  */
-int rsa_encrypt_block_convert_string(struct rsa_encrypt_block *blk, char **str)
+int rsa_encrypt_block_convert_string(struct rsa_encrypt_block *blk, void *str)
 {
         char octet[2];
         char *buf;
@@ -257,18 +265,12 @@ int rsa_encrypt_block_convert_string(struct rsa_encrypt_block *blk, char **str)
         if (!blk)
                 return -EINVAL;
 
-        buf = (char *)calloc(blk->k * 2 + 2, sizeof(char));
-        if (!buf)
-                return -ENOMEM;
-
-        *str = buf;
+        buf = str;
 
         for (uint32_t i = 0, j = 0; i < blk->k; ++i, j += 2) {
                 sprintf(octet, "%02x", blk->octet[i]);
                 memcpy(&buf[j], octet, sizeof(octet));
         }
-
-
 
         return 0;
 }
@@ -423,6 +425,12 @@ int rsa_encrypt_file(FILE *stream_encrypted, FILE *stream_plain,
         rsa_encrypt_block_init(&EB, key_len / 8);
         rsa_encrypt_block_init(&ED, key_len / 8);
 
+        str_encrypt = rsa_encrypt_block_alloc_string(&ED);
+        if (!str_encrypt) {
+                ret = -ENOMEM;
+                goto free_EB;
+        }
+
         do {
                 read = fgetc(stream_plain);
                 if (read == EOF)
@@ -439,14 +447,15 @@ int rsa_encrypt_file(FILE *stream_encrypted, FILE *stream_plain,
                 rsa_encrypt_block_convert_integer(&EB, x);
                 rsa_computation(y, x, c, n);
                 rsa_encrypt_block_from_integer(&ED, y);
-                rsa_encrypt_block_convert_string(&ED, &str_encrypt);
+                rsa_encrypt_block_convert_string(&ED, str_encrypt);
 
                 gmp_printf("encrypt: [%#04Zx][%c] -> [%s]\n", data_plain, ch, str_encrypt);
 
                 fprintf(stream_encrypted, "%s\n", str_encrypt);
-                free(str_encrypt);
         } while (!feof(stream_plain));
 
+        free(str_encrypt);
+free_EB:
         rsa_encrypt_block_free(&EB);
         rsa_encrypt_block_free(&ED);
         mpz_clears(data_encrypt, data_plain, x, y, NULL);
