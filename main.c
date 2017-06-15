@@ -26,7 +26,11 @@
 #include "rsa.h"
 #include "sha512.h"
 
-#define RSA_KEY_LENGTH                          (256)
+#define RSA_KEY_LENGTH                          (2048)
+#if RSA_KEY_LENGTH % 2
+#error invalid rsa key length
+#endif
+
 #define RSA_PUBLIC_KEY                          "pub.key"
 #define RSA_PRIVATE_KEY                         "priv.key"
 #define PLAIN_MESSAGE                           "msg.txt"
@@ -43,7 +47,7 @@ static inline void des_encrypt(void) { }
 static inline void des_decrypt(void) { }
 
 // FIXME: ignored releasing resources after failures
-int demo(void)
+int demo(uint32_t key_length)
 {
         uint8_t hash[SHA512_HASH_BITS / 8];
         char hash_str[SHA512_HASH_BITS / 4];
@@ -61,6 +65,9 @@ int demo(void)
         FILE *hash_alice;
         FILE *hash_bob;
 
+        if (key_length % 2)
+                key_length = RSA_KEY_LENGTH;
+
         rsa_public_key_init(&public_key);
         rsa_private_key_init(&private_key);
 
@@ -68,7 +75,7 @@ int demo(void)
          * Alice: generates and saves her RSA key pair
          */
 
-        if (rsa_private_key_generate(&private_key, RSA_KEY_LENGTH))
+        if (rsa_private_key_generate(&private_key, key_length))
                 return 1;
 
         if (rsa_public_key_generate(&public_key, &private_key))
@@ -254,5 +261,10 @@ int demo(void)
 
 int main(int argc, char *argv[])
 {
-        return demo();
+        uint32_t key_length = RSA_KEY_LENGTH;
+
+        if (argc == 2)
+                sscanf(argv[2 - 1], "%u", &key_length);
+
+        return demo(key_length);
 }
