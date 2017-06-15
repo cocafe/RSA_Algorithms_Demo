@@ -1,10 +1,6 @@
 #ifndef SIMPLERSADIGEST_RSA_DIGEST_H
 #define SIMPLERSADIGEST_RSA_DIGEST_H
 
-#ifndef __GMP_H__
-#error include gmp.h first
-#endif /* __GMP_H__ */
-
 #include "gmp_helper.h"
 #include "misc_helper.h"
 

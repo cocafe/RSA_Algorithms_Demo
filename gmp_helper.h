@@ -1,6 +1,8 @@
 #ifndef SIMPLERSADIGEST_GMP_HELPER_H
 #define SIMPLERSADIGEST_GMP_HELPER_H
 
+#include <gmp.h>
+
 void __mpz_urandomb(mpz_t rop, mp_bitcnt_t n);
 void __mpz_urandomm(mpz_t rop, const mpz_t n);
 

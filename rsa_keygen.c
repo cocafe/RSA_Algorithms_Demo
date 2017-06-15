@@ -4,8 +4,6 @@
 #include <string.h>
 #include <errno.h>
 
-#include <gmp.h>
-
 #include "rsa.h"
 
 /**
