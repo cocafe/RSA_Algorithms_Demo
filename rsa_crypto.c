@@ -394,25 +394,19 @@ static inline void rsa_computation(mpz_t y, const mpz_t x, const mpz_t c, const 
 /**
  * rsa_encrypt_file() - rsa algorithm to encrypt file
  *
- * @param   file_encrypt: file path to save encrypted data
- * @param   file_plain: file path to plain text file
+ * @param   stream_encrypted: file stream pointer to save encrypted data
+ * @param   stream_plain: file stream pointer to read plain text
  * @param   c: E or D exponent from key
  * @param   n: N modulus from key
  * @param   key_len: key bit length from key
  * @param   BT: 00 01 for private key operation, 02 for public key operation
  * @return  0 on success
  */
-int rsa_encrypt_file(const char *file_encrypt,
-                     const char *file_plain,
-                     const mpz_t c,
-                     const mpz_t n,
-                     uint64_t key_len,
-                     uint8_t BT)
+int rsa_encrypt_file(FILE *stream_encrypted, FILE *stream_plain,
+                     const mpz_t c, const mpz_t n, uint64_t key_len, uint8_t BT)
 {
         struct rsa_encrypt_block        EB;     /* Formatted block */
         struct rsa_encrypt_block        ED;     /* Encrypted block*/
-        FILE                            *fp_encrypt;
-        FILE                            *fp_plain;
         char                            *str_encrypt;
         mpz_t                           data_encrypt;
         mpz_t                           data_plain;
@@ -422,29 +416,15 @@ int rsa_encrypt_file(const char *file_encrypt,
         int32_t                         read;   /* fgetc() returns int32_t */
         uint8_t                         ch;     /* char reads from file */
 
-        if (!file_encrypt || !file_plain || !c || !n)
+        if (!stream_encrypted || !stream_plain || !c || !n)
                 return -EINVAL;
-
-        fp_plain = fopen(file_plain, "r");
-        if (!fp_plain) {
-                fprintf(stderr, "failed to open %s to read\n", file_plain);
-                return -EACCES;
-        }
-
-        fp_encrypt = fopen(file_encrypt, "w");
-        if (!fp_encrypt) {
-                fprintf(stderr, "failed to open %s to write\n", file_encrypt);
-                ret = -EACCES;
-
-                goto err_fpencrypt;
-        }
 
         mpz_inits(data_encrypt, data_plain, x, y, NULL);
         rsa_encrypt_block_init(&EB, key_len / 8);
         rsa_encrypt_block_init(&ED, key_len / 8);
 
         do {
-                read = fgetc(fp_plain);
+                read = fgetc(stream_plain);
                 if (read == EOF)
                         break;
 
@@ -463,19 +443,13 @@ int rsa_encrypt_file(const char *file_encrypt,
 
                 gmp_printf("encrypt: [%#04Zx][%c] -> [%s]\n", data_plain, ch, str_encrypt);
 
-                fprintf(fp_encrypt, "%s\n", str_encrypt);
+                fprintf(stream_encrypted, "%s\n", str_encrypt);
                 free(str_encrypt);
-        } while (!feof(fp_plain));
+        } while (!feof(stream_plain));
 
         rsa_encrypt_block_free(&EB);
         rsa_encrypt_block_free(&ED);
         mpz_clears(data_encrypt, data_plain, x, y, NULL);
-
-        fflush(fp_encrypt);
-        fclose(fp_encrypt);
-
-err_fpencrypt:
-        fclose(fp_plain);
 
         return ret;
 }
@@ -483,23 +457,18 @@ err_fpencrypt:
 /**
  * rsa_decrypt_file() - decrypt rsa encrypted file
  *
- * @param   file_decrypt: file path to save decrypted data
- * @param   file_encrypt: file path to encrypted file
+ * @param   stream_decrypt: file stream pointer to save decrypted data
+ * @param   stream_encrypt: file stream pointer to read encrypted data
  * @param   c: E or D exponent from key
  * @param   n: N modulus from key
  * @param   key_len: key bit length
  * @return  0 on success
  */
-int rsa_decrypt_file(const char *file_decrypt,
-                     const char *file_encrypt,
-                     const mpz_t c,
-                     const mpz_t n,
-                     uint64_t key_len)
+int rsa_decrypt_file(FILE *stream_decrypt, FILE *stream_encrypt, const mpz_t c,
+                     const mpz_t n, uint64_t key_len)
 {
         struct rsa_encrypt_block        EB;     /* Decoded encryption block */
         struct rsa_encrypt_block        ED;     /* Encoded encryption block */
-        FILE                            *fp_decrypt;
-        FILE                            *fp_encrypt;
         char                            *str_encrypt;
         size_t                          str_len;
         mpz_t                           x;      /* Decrypted integer block */
@@ -510,26 +479,11 @@ int rsa_decrypt_file(const char *file_decrypt,
         uint8_t                         ch;
         uint8_t                         D;      /* Decrypted data */
 
-        fp_encrypt = fopen(file_encrypt, "r");
-        if (!fp_encrypt) {
-                fprintf(stderr, "failed to open %s to read\n", file_encrypt);
-                return -EACCES;
-        }
-
-        fp_decrypt = fopen(file_decrypt, "w");
-        if (!fp_decrypt) {
-                fprintf(stderr, "failed to open %s to write\n", file_decrypt);
-                ret = -EACCES;
-
-                goto err_fpdecrypt;
-        }
-
         /* hex chars + [\0] */
         str_len = (sizeof(char) * key_len / 4) + 1;
         str_encrypt = (char *)calloc(1, str_len);
         if (!str_encrypt) {
                 ret = -ENOMEM;
-                goto err_buffer;
         }
 
         mpz_inits(x, y, NULL);
@@ -538,7 +492,7 @@ int rsa_decrypt_file(const char *file_decrypt,
 
         count = 0;
         do {
-                read = fgetc(fp_encrypt);
+                read = fgetc(stream_encrypt);
                 if (read == EOF)
                         break;
 
@@ -554,7 +508,7 @@ int rsa_decrypt_file(const char *file_decrypt,
                         rsa_encrypt_block_from_integer(&EB, x);
                         rsa_encrypt_block_decode(&EB, &D);
 
-                        fputc(D, fp_decrypt);
+                        fputc(D, stream_decrypt);
 
                         printf("decrypt: [%s] -> [%#04x][%c]\n", str_encrypt, D, D);
 
@@ -571,7 +525,7 @@ int rsa_decrypt_file(const char *file_decrypt,
 
                         goto err_read;
                 }
-        } while (!feof(fp_encrypt));
+        } while (!feof(stream_encrypt));
 
 err_read:
         rsa_encrypt_block_free(&ED);
@@ -580,57 +534,46 @@ err_read:
 
         free(str_encrypt);
 
-err_buffer:
-        fflush(fp_decrypt);
-        fclose(fp_decrypt);
-
-err_fpdecrypt:
-        fclose(fp_encrypt);
-
         return ret;
 }
 
-int rsa_private_key_encrypt(struct rsa_private *key,
-                            const char *file_encrypt,
-                            const char *file_plain)
+int rsa_private_key_encrypt(struct rsa_private *key, FILE *stream_encrypted,
+                            FILE *stream_plain)
 {
-        return rsa_encrypt_file(file_encrypt,
-                                file_plain,
+        return rsa_encrypt_file(stream_encrypted,
+                                stream_plain,
                                 key->d,
                                 key->n,
                                 key->key_len,
                                 PRIVATE_KEY_BT_DEFAULT);
 }
 
-int rsa_private_key_decrypt(struct rsa_private *key,
-                            const char *file_decrypt,
-                            const char *file_encrypt)
+int rsa_private_key_decrypt(struct rsa_private *key, FILE *stream_decrypt,
+                            FILE *stream_encrypt)
 {
-        return rsa_decrypt_file(file_decrypt,
-                                file_encrypt,
+        return rsa_decrypt_file(stream_decrypt,
+                                stream_encrypt,
                                 key->d,
                                 key->n,
                                 key->key_len);
 }
 
-int rsa_public_key_encrypt(struct rsa_public *key,
-                           const char *file_encrypt,
-                           const char *file_plain)
+int rsa_public_key_encrypt(struct rsa_public *key,FILE *stream_encrypted,
+                           FILE *stream_plain)
 {
-        return rsa_encrypt_file(file_encrypt,
-                                file_plain,
+        return rsa_encrypt_file(stream_encrypted,
+                                stream_plain,
                                 key->e,
                                 key->n,
                                 key->key_len,
                                 PUBLIC_KEY_BT_DEFAULT);
 }
 
-int rsa_public_key_decrypt(struct rsa_public *key,
-                           const char *file_decrypt,
-                           const char *file_encrypt)
+int rsa_public_key_decrypt(struct rsa_public *key,FILE *stream_decrypt,
+                           FILE *stream_encrypt)
 {
-        return rsa_decrypt_file(file_decrypt,
-                                file_encrypt,
+        return rsa_decrypt_file(stream_decrypt,
+                                stream_encrypt,
                                 key->e,
                                 key->n,
                                 key->key_len);

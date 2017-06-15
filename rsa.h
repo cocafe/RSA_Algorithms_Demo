@@ -58,11 +58,11 @@ int rsa_private_key_clean(struct rsa_private *key);
 int rsa_public_key_init(struct rsa_public *key);
 int rsa_public_key_clean(struct rsa_public *key);
 
-int rsa_private_key_dump(struct rsa_private *key, FILE *__stream);
-int rsa_private_key_save(struct rsa_private *key, const char *filename);
+int rsa_private_key_dump(struct rsa_private *key, FILE *stream);
+int rsa_private_key_save(struct rsa_private *key, FILE *stream);
 
-int rsa_public_key_dump(struct rsa_public *key, FILE *__stream);
-int rsa_public_key_save(struct rsa_public *key, const char *filename);
+int rsa_public_key_dump(struct rsa_public *key, FILE *stream);
+int rsa_public_key_save(struct rsa_public *key, FILE *stream);
 
 int rsa_private_key_generate(struct rsa_private *key, uint64_t length);
 int rsa_public_key_generate(struct rsa_public *pub, struct rsa_private *priv);
@@ -96,30 +96,19 @@ enum {
 #define PRIVATE_KEY_BT_DEFAULT          (BT_TYPE_01)
 #define PUBLIC_KEY_BT_DEFAULT           (BT_TYPE_02)
 
-int rsa_encrypt_file(const char *file_encrypt,
-                     const char *file_plain,
-                     const mpz_t c,
-                     const mpz_t n,
-                     uint64_t key_len,
-                     uint8_t BT);
-int rsa_decrypt_file(const char *file_decrypt,
-                     const char *file_encrypt,
-                     const mpz_t c,
-                     const mpz_t n,
-                     uint64_t key_len);
+int rsa_encrypt_file(FILE *stream_encrypted, FILE *stream_plain,
+                     const mpz_t c, const mpz_t n, uint64_t key_len, uint8_t BT);
+int rsa_decrypt_file(FILE *stream_decrypt, FILE *stream_encrypt, const mpz_t c,
+                     const mpz_t n, uint64_t key_len);
 
-int rsa_private_key_encrypt(struct rsa_private *key,
-                            const char *file_encrypt,
-                            const char *file_plain);
-int rsa_private_key_decrypt(struct rsa_private *key,
-                            const char *file_decrypt,
-                            const char *file_encrypt);
+int rsa_private_key_encrypt(struct rsa_private *key, FILE *stream_encrypted,
+                            FILE *stream_plain);
+int rsa_private_key_decrypt(struct rsa_private *key, FILE *stream_decrypt,
+                            FILE *stream_encrypt);
 
-int rsa_public_key_encrypt(struct rsa_public *key,
-                           const char *file_encrypt,
-                           const char *file_plain);
-int rsa_public_key_decrypt(struct rsa_public *key,
-                           const char *file_decrypt,
-                           const char *file_encrypt);
+int rsa_public_key_encrypt(struct rsa_public *key,FILE *stream_encrypted,
+                           FILE *stream_plain);
+int rsa_public_key_decrypt(struct rsa_public *key,FILE *stream_decrypt,
+                           FILE *stream_encrypt);
 
 #endif //SIMPLERSADIGEST_RSA_DIGEST_H

@@ -113,10 +113,10 @@ int rsa_public_key_clean(struct rsa_public *key)
  * rsa_private_key_dump() - dump key data to file stream
  *
  * @param   key: pointer to key struct
- * @param   __stream: pointer to file stream
+ * @param   stream: pointer to file stream
  * @return
  */
-int rsa_private_key_dump(struct rsa_private *key, FILE *__stream)
+int rsa_private_key_dump(struct rsa_private *key, FILE *stream)
 {
         if (!key)
                 return -EINVAL;
@@ -124,18 +124,18 @@ int rsa_private_key_dump(struct rsa_private *key, FILE *__stream)
         /*
          * ASN.1 style
          */
-        gmp_fprintf(__stream, "RSAPrivateKey ::= SEQUENCE {\n");
-        gmp_fprintf(__stream, "  version %lu\n", key->version);
-        gmp_fprintf(__stream, "  modulus %Zd, -- n\n", key->n);
-        gmp_fprintf(__stream, "  publicExponent %Zd, -- e\n", key->e);
-        gmp_fprintf(__stream, "  privateExponent %Zd, -- d\n", key->d);
-        gmp_fprintf(__stream, "  prime1 %Zd, -- p\n", key->p);
-        gmp_fprintf(__stream, "  prime2 %Zd, -- q\n", key->q);
-        gmp_fprintf(__stream, "  exponent1 %Zd, -- d mod (p-1)\n", key->exp1);
-        gmp_fprintf(__stream, "  exponent2 %Zd, -- d mod (q-1)\n", key->exp2);
-        gmp_fprintf(__stream, "  coefficient %Zd, -- (inverse of q) mod p }", key->coeff);
-        gmp_fprintf(__stream, "\n");
-        gmp_fprintf(__stream, "Version ::= %lu\n", key->version);
+        gmp_fprintf(stream, "RSAPrivateKey ::= SEQUENCE {\n");
+        gmp_fprintf(stream, "  version %lu\n", key->version);
+        gmp_fprintf(stream, "  modulus %Zd, -- n\n", key->n);
+        gmp_fprintf(stream, "  publicExponent %Zd, -- e\n", key->e);
+        gmp_fprintf(stream, "  privateExponent %Zd, -- d\n", key->d);
+        gmp_fprintf(stream, "  prime1 %Zd, -- p\n", key->p);
+        gmp_fprintf(stream, "  prime2 %Zd, -- q\n", key->q);
+        gmp_fprintf(stream, "  exponent1 %Zd, -- d mod (p-1)\n", key->exp1);
+        gmp_fprintf(stream, "  exponent2 %Zd, -- d mod (q-1)\n", key->exp2);
+        gmp_fprintf(stream, "  coefficient %Zd, -- (inverse of q) mod p }", key->coeff);
+        gmp_fprintf(stream, "\n");
+        gmp_fprintf(stream, "Version ::= %lu\n", key->version);
 
         return 0;
 }
@@ -144,37 +144,21 @@ int rsa_private_key_dump(struct rsa_private *key, FILE *__stream)
  * rsa_private_key_save() - dump key data to file
  *
  * @param   key: pointer to key struct
- * @param   filename: file path to write
+ * @param   stream: file stream pointer
  * @return  0 on success
  */
-int rsa_private_key_save(struct rsa_private *key, const char *filename)
+int rsa_private_key_save(struct rsa_private *key, FILE *stream)
 {
-        FILE *file;
-
-        if (!key || !filename)
-                return -EINVAL;
-
-        file = fopen(filename, "w");
-        if (!file) {
-                fprintf(stderr, "failed to open %s to write\n", filename);
-                return -EACCES;
-        }
-
-        rsa_private_key_dump(key, file);
-
-        fflush(file);
-        fclose(file);
-
-        return 0;
+        return rsa_private_key_dump(key, stream);;
 }
 
 /**
  * rsa_public_key_dump() - dump key data to file stream
  * @param   key: pointer to key struct
- * @param   __stream: pointer to file stream
+ * @param   stream: pointer to file stream
  * @return
  */
-int rsa_public_key_dump(struct rsa_public *key, FILE *__stream)
+int rsa_public_key_dump(struct rsa_public *key, FILE *stream)
 {
         if (!key)
                 return -EINVAL;
@@ -182,9 +166,9 @@ int rsa_public_key_dump(struct rsa_public *key, FILE *__stream)
         /*
          * ASN.1 style
          */
-        gmp_fprintf(__stream, "RSAPublicKey ::= SEQUENCE {\n");
-        gmp_fprintf(__stream, "  modulus %Zd, -- n\n", key->n);
-        gmp_fprintf(__stream, "  publicExponent %Zd -- e }\n", key->e);
+        gmp_fprintf(stream, "RSAPublicKey ::= SEQUENCE {\n");
+        gmp_fprintf(stream, "  modulus %Zd, -- n\n", key->n);
+        gmp_fprintf(stream, "  publicExponent %Zd -- e }\n", key->e);
 
         return 0;
 }
@@ -193,29 +177,12 @@ int rsa_public_key_dump(struct rsa_public *key, FILE *__stream)
  * rsa_public_key_save() - dump key data to file
  *
  * @param   key: pointer to key struct
- * @param   filename: file path to write
+ * @param   stream: pointer to file stream
  * @return  0 on success
  */
-int rsa_public_key_save(struct rsa_public *key, const char *filename)
+int rsa_public_key_save(struct rsa_public *key, FILE *stream)
 {
-        FILE *file;
-
-        if (!key || !filename)
-                return -EINVAL;
-
-        file = fopen(filename, "w");
-        if (!file) {
-                fprintf(stderr, "failed to open %s to write\n", filename);
-                return -EACCES;
-        }
-
-        /* ASN.1 style */
-        rsa_public_key_dump(key, file);
-
-        fflush(file);
-        fclose(file);
-
-        return 0;
+        return rsa_public_key_dump(key, stream);;
 }
 
 /**
