@@ -75,6 +75,8 @@ int demo(uint32_t key_length)
          * Alice: generates and saves her RSA key pair
          */
 
+        fprintf(stdout, "Alice: generating %u-bit RSA Key pair...\n", key_length);
+
         if (rsa_private_key_generate(&private_key, key_length))
                 return 1;
 
