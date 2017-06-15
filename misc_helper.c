@@ -27,13 +27,13 @@ uint64_t urandom_read(void)
 }
 
 /**
- * memory_byte_dump() - dump memory by bytes to file stream
+ * memdump_byte() - dump memory by bytes to file stream
  *
  * @param blk: pointer to memory block
  * @param size: memory block in bytes
  * @param stream: file stream to dump to
  */
-void memory_byte_dump(void *blk, size_t size, FILE *stream)
+void memdump_byte(void *blk, size_t size, FILE *stream)
 {
 #define COUNT_RETURN_LINE               (4 * 8)
 #define COUNT_MAKE_SPACE                (4)
