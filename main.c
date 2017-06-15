@@ -26,7 +26,7 @@
 #include "rsa.h"
 #include "sha512.h"
 
-#define RSA_KEY_LENGTH                          (2048)
+#define RSA_KEY_LENGTH                          (512)
 #if RSA_KEY_LENGTH % 2
 #error invalid rsa key length
 #endif
