@@ -27,6 +27,18 @@
 
 #include "rsa.h"
 
+const static uint8_t BT_encrypt_key[NUM_BT_TYPE] = {
+        [BT_TYPE_00] = RSA_KEY_TYPE_PRIVATE,
+        [BT_TYPE_01] = RSA_KEY_TYPE_PRIVATE,
+        [BT_TYPE_02] = RSA_KEY_TYPE_PUBLIC,
+};
+
+const static uint8_t BT_decrypt_key[NUM_BT_TYPE] = {
+        [BT_TYPE_00] = RSA_KEY_TYPE_PUBLIC,
+        [BT_TYPE_01] = RSA_KEY_TYPE_PUBLIC,
+        [BT_TYPE_02] = RSA_KEY_TYPE_PRIVATE,
+};
+
 /**
  * rsa_encrypt_block_init() - alloc memory space for encryption block
  *
@@ -165,9 +177,10 @@ int rsa_encrypt_block_encode(struct rsa_encrypt_block *EB, const uint8_t BT, con
  *
  * @param   EB: pointer to encryption block
  * @param   D: pointer to data
+ * @param   key_type: pointer to data
  * @return  0 on success
  */
-int rsa_encrypt_block_decode(struct rsa_encrypt_block *EB, uint8_t *D)
+int rsa_encrypt_block_decode(struct rsa_encrypt_block *EB, uint8_t *D, uint8_t key_type)
 {
         int32_t found;
         uint32_t idx;
@@ -183,6 +196,11 @@ int rsa_encrypt_block_decode(struct rsa_encrypt_block *EB, uint8_t *D)
 
         /* Search starts from PS segment */
         for (idx = EB_PS_OCTET_OFFSET, found = 0; idx < EB->k; idx++) {
+                if (key_type != BT_decrypt_key[BT]) {
+                        fprintf(stderr, "%s: invalid decryption key type\n", __func__);
+                        goto err_key_type;
+                }
+
                 switch (BT) {
                         case BT_TYPE_00:
                                 /* We are on data segment */
@@ -216,6 +234,9 @@ int rsa_encrypt_block_decode(struct rsa_encrypt_block *EB, uint8_t *D)
         }
 
         return 0;
+
+err_key_type:
+        return -EINVAL;
 }
 
 /**
@@ -401,11 +422,17 @@ static inline void rsa_computation(mpz_t y, const mpz_t x, const mpz_t c, const 
  * @param   c: E or D exponent from key
  * @param   n: N modulus from key
  * @param   key_len: key bit length from key
+ * @param   key_type: type of the key
  * @param   BT: 00 01 for private key operation, 02 for public key operation
  * @return  0 on success
  */
-int rsa_encrypt_file(FILE *stream_encrypted, FILE *stream_plain,
-                     const mpz_t c, const mpz_t n, uint64_t key_len, uint8_t BT)
+int rsa_encrypt_file(FILE *stream_encrypted,
+                     FILE *stream_plain,
+                     const mpz_t c,
+                     const mpz_t n,
+                     uint64_t key_len,
+                     uint8_t key_type,
+                     uint8_t BT)
 {
         struct rsa_encrypt_block        EB;     /* Formatted block */
         struct rsa_encrypt_block        ED;     /* Encrypted block*/
@@ -419,6 +446,9 @@ int rsa_encrypt_file(FILE *stream_encrypted, FILE *stream_plain,
         uint8_t                         ch;     /* char reads from file */
 
         if (!stream_encrypted || !stream_plain || !c || !n)
+                return -EINVAL;
+
+        if (key_type != BT_encrypt_key[BT])
                 return -EINVAL;
 
         mpz_inits(data_encrypt, data_plain, x, y, NULL);
@@ -471,10 +501,15 @@ free_EB:
  * @param   c: E or D exponent from key
  * @param   n: N modulus from key
  * @param   key_len: key bit length
+ * @param   key_type: decryption key type, to verify BT
  * @return  0 on success
  */
-int rsa_decrypt_file(FILE *stream_decrypt, FILE *stream_encrypt, const mpz_t c,
-                     const mpz_t n, uint64_t key_len)
+int rsa_decrypt_file(FILE *stream_decrypt,
+                     FILE *stream_encrypt,
+                     const mpz_t c,
+                     const mpz_t n,
+                     uint64_t key_len,
+                     uint8_t key_type)
 {
         struct rsa_encrypt_block        EB;     /* Decoded encryption block */
         struct rsa_encrypt_block        ED;     /* Encoded encryption block */
@@ -515,7 +550,8 @@ int rsa_decrypt_file(FILE *stream_decrypt, FILE *stream_encrypt, const mpz_t c,
                         rsa_encrypt_block_convert_integer(&ED, y);
                         rsa_computation(x, y, c, n);
                         rsa_encrypt_block_from_integer(&EB, x);
-                        rsa_encrypt_block_decode(&EB, &D);
+                        if (rsa_encrypt_block_decode(&EB, &D, key_type))
+                                goto err_read;
 
                         fputc(D, stream_decrypt);
 
@@ -554,6 +590,7 @@ int rsa_private_key_encrypt(struct rsa_private *key, FILE *stream_encrypted,
                                 key->d,
                                 key->n,
                                 key->key_len,
+                                RSA_KEY_TYPE_PRIVATE,
                                 PRIVATE_KEY_BT_DEFAULT);
 }
 
@@ -564,7 +601,8 @@ int rsa_private_key_decrypt(struct rsa_private *key, FILE *stream_decrypt,
                                 stream_encrypt,
                                 key->d,
                                 key->n,
-                                key->key_len);
+                                key->key_len,
+                                RSA_KEY_TYPE_PRIVATE);
 }
 
 int rsa_public_key_encrypt(struct rsa_public *key,FILE *stream_encrypted,
@@ -575,6 +613,7 @@ int rsa_public_key_encrypt(struct rsa_public *key,FILE *stream_encrypted,
                                 key->e,
                                 key->n,
                                 key->key_len,
+                                RSA_KEY_TYPE_PUBLIC,
                                 PUBLIC_KEY_BT_DEFAULT);
 }
 
@@ -585,5 +624,6 @@ int rsa_public_key_decrypt(struct rsa_public *key,FILE *stream_decrypt,
                                 stream_encrypt,
                                 key->e,
                                 key->n,
-                                key->key_len);
+                                key->key_len,
+                                RSA_KEY_TYPE_PUBLIC);
 }

@@ -90,16 +90,31 @@ enum {
         NUM_BT_TYPE,
 };
 
+enum {
+        RSA_KEY_TYPE_PRIVATE = 0,
+        RSA_KEY_TYPE_PUBLIC,
+        NUM_RSA_KEY_TYPE
+};
+
 #define EB_BT_OCTET_OFFSET              (1 << 0)
 #define EB_PS_OCTET_OFFSET              (1 << 1)
 
 #define PRIVATE_KEY_BT_DEFAULT          (BT_TYPE_01)
 #define PUBLIC_KEY_BT_DEFAULT           (BT_TYPE_02)
 
-int rsa_encrypt_file(FILE *stream_encrypted, FILE *stream_plain,
-                     const mpz_t c, const mpz_t n, uint64_t key_len, uint8_t BT);
-int rsa_decrypt_file(FILE *stream_decrypt, FILE *stream_encrypt, const mpz_t c,
-                     const mpz_t n, uint64_t key_len);
+int rsa_encrypt_file(FILE *stream_encrypted,
+                     FILE *stream_plain,
+                     const mpz_t c,
+                     const mpz_t n,
+                     uint64_t key_len,
+                     uint8_t key_type,
+                     uint8_t BT);
+int rsa_decrypt_file(FILE *stream_decrypt,
+                     FILE *stream_encrypt,
+                     const mpz_t c,
+                     const mpz_t n,
+                     uint64_t key_len,
+                     uint8_t key_type);
 
 int rsa_private_key_encrypt(struct rsa_private *key, FILE *stream_encrypted,
                             FILE *stream_plain);
