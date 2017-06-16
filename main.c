@@ -248,9 +248,9 @@ int demo(uint32_t key_length)
         fprintf(stdout,   "Received message hash: %s\n", hash_str_bob);
 
         if (!strncmp(hash_str_bob, hash_decrypt, SHA512_HASH_BITS / 8))
-                fprintf(stderr, "\nDecrypted signature sha512 hash matched!\n");
+                fprintf(stdout, "\nDecrypted signature sha512 hash matched!\n");
         else
-                fprintf(stderr, "\nDecrypted signature sha512 hash does not match!\n");
+                fprintf(stdout, "\nDecrypted signature sha512 hash does not match!\n");
 
         fclose(hash_bob);
         fclose(sign_decrypt);
