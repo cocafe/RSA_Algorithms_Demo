@@ -4,15 +4,11 @@
 
 Toy project for Internet Security homework.
 
-Not optimized too much for performance, 
+Not optimized too much for performance, only the demo of the related algorithms.
 
-only the demo of the related algorithms.
+If you have not read the following documents ever, please read them carefully before looking at the source code.
 
-If you have not read the following documents ever, 
-
-please read them carefully before looking at the source code.
-
-The documents have briefly how the algorithm works and the technical details.
+The documents have briefly descripted how the algorithm works and the technical details.
 
 ------
 
